@@ -24,7 +24,7 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: "https://learning-tracker-backend-ly4g.onrender.com/oauth2/callback/google"
+            redirect-uri: "https://findmyvehicle.onrender.com/oauth2/callback/google"
 
 secreteJwtString: ${JWT_SECRET}
 
