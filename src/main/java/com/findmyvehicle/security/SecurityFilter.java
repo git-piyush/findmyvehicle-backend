@@ -61,29 +61,19 @@ public class SecurityFilter {
                                 "/swagger-ui/**",
                                 "/temp/**",
                                 "/swagger-ui.html",
-                                "/oauth2/**"              // ✅ Add this - allow OAuth2 endpoints
+                                "/oauth2/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(manager -> manager
-                        // ✅ Change to IF_REQUIRED — OAuth2 needs a brief session
-                        // during the redirect flow, then we go back to stateless
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                // ✅ Add OAuth2 login configuration
                 .oauth2Login(oauth -> oauth
-                        .authorizationEndpoint(a -> a
-                                .baseUri("/oauth2/authorize")
-                        )
-                        .redirectionEndpoint(r -> r
-                                .baseUri("/oauth2/callback/*")
-                        )
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler)
                 )
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(userActivityFilter, UsernamePasswordAuthenticationFilter.class);
-
         return httpSecurity.build();
     }
 

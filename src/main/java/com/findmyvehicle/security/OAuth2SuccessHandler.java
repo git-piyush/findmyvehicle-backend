@@ -47,14 +47,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         System.out.println("OAuth2 login success: email, provider"+email+" "+provider);
         log.info("OAuth2 login success: email={}, provider={}", email, provider);
 
-        // Find or create user
         User user1 = (User) userService.findOrCreateSocialUser(email, name, provider);
 
-        // Generate JWT
         String jwt = jwtUtils.generateToken(email);
-
-       // UserDetails user = userService.findOrCreateSocialUser(email, name, provider);
-       // String jwt = jwtUtils.generateToken(email);
 
         String redirectUrl = frontendUrl + "/auth/social-callback?token=" + jwt +"&role="+user1.getRole().name()+"&username="+user1.getName();
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);

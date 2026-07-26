@@ -9,9 +9,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 public interface UserService {
     User registerUser(RegisterRequest registerRequest);
     Response loginUser(LoginRequest loginRequest);
+    Boolean existsByEmail(String email);
 //    Response getAllUsers();
     User getCurrentLoggedInUser();
 //    Response updateUser(Long id, UserDTO userDTO);
 //    Response deleteUser(Long id);
+
     UserDetails findOrCreateSocialUser(String email, String name, String provider);
 }

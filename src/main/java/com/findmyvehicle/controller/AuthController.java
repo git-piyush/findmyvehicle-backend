@@ -28,6 +28,13 @@ public class AuthController {
     public ResponseEntity<Response> registerUser(@RequestBody @Valid RegisterRequest registerRequest){
         Status status = new Status();
         Response response = new Response();
+        if (userService.existsByEmail(registerRequest.getEmail())) {
+            status.setStatus(409);
+            status.setMessage("User already Exist.");
+            response.setStatus(status);
+            return ResponseEntity.ok(response);
+        }
+
         try{
            User user = userService.registerUser(registerRequest);
             status.setStatus(200);
