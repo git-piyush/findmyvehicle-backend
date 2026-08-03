@@ -1,4 +1,4 @@
-package com.findmyvehicle.service.serviceImpl;
+package com.findmyvehicle.serviceImpl;
 
 import com.findmyvehicle.dto.*;
 import com.findmyvehicle.entity.User;
@@ -7,19 +7,17 @@ import com.findmyvehicle.enums.UserRole;
 import com.findmyvehicle.exception.InvalidCredentialsException;
 import com.findmyvehicle.exception.ResourceNotFoundException;
 import com.findmyvehicle.repository.UserRepository;
+import com.findmyvehicle.service.UserService;
 import com.findmyvehicle.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service

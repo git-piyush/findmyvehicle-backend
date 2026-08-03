@@ -1,7 +1,7 @@
 package com.findmyvehicle.security;
 
 import com.findmyvehicle.entity.User;
-import com.findmyvehicle.service.serviceImpl.UserService;
+import com.findmyvehicle.service.UserService;
 import com.findmyvehicle.util.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

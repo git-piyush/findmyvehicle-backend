@@ -5,7 +5,7 @@ import com.findmyvehicle.dto.RegisterRequest;
 import com.findmyvehicle.dto.Response;
 import com.findmyvehicle.dto.Status;
 import com.findmyvehicle.entity.User;
-import com.findmyvehicle.service.serviceImpl.UserService;
+import com.findmyvehicle.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

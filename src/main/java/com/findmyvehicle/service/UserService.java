@@ -1,4 +1,4 @@
-package com.findmyvehicle.service.serviceImpl;
+package com.findmyvehicle.service;
 
 import com.findmyvehicle.dto.LoginRequest;
 import com.findmyvehicle.dto.RegisterRequest;

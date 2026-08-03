@@ -8,5 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 public class Status {
     private int status;
+
     private String message;
 }

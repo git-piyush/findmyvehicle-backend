@@ -6,14 +6,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@Builder
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Response {
-
+public class Response<T> {
 
     private UserIdentity userIdentity;
+
     private Status status;
+
+    private T data;
+
 }
