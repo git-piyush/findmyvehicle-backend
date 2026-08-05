@@ -30,3 +30,8 @@ secreteJwtString: ${JWT_SECRET}
 
 app:
   frontend-url: ${frontend-url}
+
+logging:
+  level:
+    root: INFO
+    com.findmyvehicle.serviceImpl.home: DEBUG
