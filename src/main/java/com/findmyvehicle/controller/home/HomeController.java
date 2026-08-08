@@ -1,21 +1,13 @@
-package com.findmyvehicle.controller;
+package com.findmyvehicle.controller.home;
 
 import com.findmyvehicle.dto.Response;
 import com.findmyvehicle.dto.Status;
-import com.findmyvehicle.dto.home.Data;
-import com.findmyvehicle.dto.vehicle.VehicleDto;
-import com.findmyvehicle.exception.DuplicateResourceException;
+import com.findmyvehicle.dto.home.DashboardData;
 import com.findmyvehicle.service.home.HomeService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/home")
@@ -24,9 +16,9 @@ public class HomeController {
     @Autowired
     private HomeService homeService;
 
-    @GetMapping("/data")
+    @GetMapping("/dashboard-data")
     public ResponseEntity<Response> reportMissingVehicle() {
-        Data data = new Data();
+        DashboardData data = homeService.getDashboardData();
         Status status = new Status();
         status.setStatus(HttpStatus.OK.value());
         status.setMessage("Home Dashboard Data retrieved.");
@@ -47,10 +39,6 @@ public class HomeController {
         Status status = new Status();
         status.setStatus(HttpStatus.OK.value());
         status.setMessage("Home Dashboard Data refreshed successfully.");
-
-        // Prepare data object (optional: you can populate with updated dashboard info if needed)
-        Data data = new Data();
-        // Example: data.setDashboardInfo(homeRepository.findFirstByOrderByIdAsc());
 
         // Build response
         Response response = new Response();

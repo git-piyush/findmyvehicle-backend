@@ -2,17 +2,25 @@ package com.findmyvehicle.dto.home;
 
 import lombok.*;
 
+import lombok.*;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class BoxData {
-    private Long value;
 
-    private String label;
+    @Builder.Default
+    private Long value = 0L;
 
-    private String description;
+    @Builder.Default
+    private String label = "";
 
-    private String icon;
+    @Builder.Default
+    private String description = "";
+
+    @Builder.Default
+    private String icon = "";
 }
+

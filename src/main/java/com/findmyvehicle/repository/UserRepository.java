@@ -17,6 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Boolean existsByEmail(String email);
 
+    Boolean existsByEmailAndId(String email, Long id);
+
     @Modifying
     @Transactional
     @Query("UPDATE User u SET u.lastactiveat = :lastActive WHERE u.email = :email")

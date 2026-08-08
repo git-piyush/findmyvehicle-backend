@@ -9,12 +9,16 @@ import lombok.*;
 @Builder
 public class Statistics {
 
-    private BoxData box1;
+    @Builder.Default
+    private BoxData box1 = new BoxData();
 
-    private BoxData box2;
+    @Builder.Default
+    private BoxData box2 = new BoxData();
 
-    private BoxData box3;
+    @Builder.Default
+    private BoxData box3 = new BoxData();
 
-    private BoxData box4;
-
+    @Builder.Default
+    private BoxData box4 = new BoxData();
 }
+

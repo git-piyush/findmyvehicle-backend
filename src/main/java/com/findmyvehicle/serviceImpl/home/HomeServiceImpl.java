@@ -1,5 +1,6 @@
 package com.findmyvehicle.serviceImpl.home;
 
+import com.findmyvehicle.dto.home.DashboardData;
 import com.findmyvehicle.entity.home.HomeDashData;
 import com.findmyvehicle.enums.VehicleStatus;
 import com.findmyvehicle.repository.UserRepository;
@@ -7,6 +8,7 @@ import com.findmyvehicle.repository.home.HomeRepository;
 import com.findmyvehicle.repository.vehicle.MissingDetailsRepository;
 import com.findmyvehicle.repository.vehicle.VehicleRepository;
 import com.findmyvehicle.service.home.HomeService;
+import com.findmyvehicle.util.MapperService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,9 @@ public class HomeServiceImpl implements HomeService {
 
     @Autowired
     private MissingDetailsRepository missingDetailsRepository;
+
+    @Autowired
+    private MapperService mapperService;
 
     @Override
     public void refreshHomeDashboardData() {
@@ -94,5 +99,14 @@ public class HomeServiceImpl implements HomeService {
             homeRepository.save(homeDashData);
             log.info("New dashboard record created successfully.");
         }
+    }
+
+    @Override
+    public DashboardData getDashboardData() {
+
+        HomeDashData homeDashDataDB = homeRepository.findFirstByOrderByIdAsc();
+        DashboardData dashboardData = mapperService.homeDashDataToDashboardDate(homeDashDataDB);
+
+        return dashboardData;
     }
 }

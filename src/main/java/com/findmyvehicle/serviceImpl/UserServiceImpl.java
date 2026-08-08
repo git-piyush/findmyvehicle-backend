@@ -9,14 +9,17 @@ import com.findmyvehicle.exception.ResourceNotFoundException;
 import com.findmyvehicle.repository.UserRepository;
 import com.findmyvehicle.service.UserService;
 import com.findmyvehicle.util.JwtUtils;
+import com.findmyvehicle.util.MapperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -29,9 +32,10 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final ModelMapper modelMapper;
-
     private final JwtUtils jwtUtils;
+
+    @Autowired
+    private MapperService mapperService;
 
     @Override
     public User registerUser(RegisterRequest registerRequest) {
@@ -68,6 +72,8 @@ public class UserServiceImpl implements UserService {
         identity.setToken(token);
         identity.setUserName(user.getName());
         identity.setRole(user.getRole());
+        identity.setUserId(user.getId());
+        identity.setEmail(user.getEmail());
 
         Status status = new Status();
         status.setStatus(200);
@@ -83,15 +89,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getCurrentLoggedInUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(()-> new ResourceNotFoundException("User Not Found."));
-
-        return user;
+    public Boolean existsByEmailAndId(String email, Long id) {
+        return null;
     }
 
     @Override
@@ -119,5 +118,32 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         return userRepository.save(newUser);
+    }
+
+    @Override
+    public UserProfile getUserProfile(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        UserProfile userProfile = null;
+        if(user.isPresent()){
+            userProfile = mapperService.userToUserProfile(user.get());
+        }
+
+        return userProfile;
+    }
+
+    @Override
+    public User createUserProfile(User user, MultipartFile imageFile) {
+
+        //Save Image
+        user = userRepository.save(user);
+
+        return user;
+    }
+
+    @Override
+    public User findById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("User not Found."));
+        return user;
     }
 }

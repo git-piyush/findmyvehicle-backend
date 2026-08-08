@@ -61,6 +61,13 @@ public class User implements UserDetails {
     @Column(name = "lastactiveat")
     private LocalDateTime lastactiveat;
 
+    @Builder.Default
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Address address = new Address();
+
+    @Column(name="imageUrl")
+    private String profilePic;
+
     // A user is "online" if active within last 5 minutes
     @Transient
     public boolean isOnline() {
