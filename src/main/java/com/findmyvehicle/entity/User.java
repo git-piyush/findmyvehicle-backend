@@ -62,7 +62,12 @@ public class User implements UserDetails {
     private LocalDateTime lastactiveat;
 
     @Builder.Default
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(
+            name = "address_id",
+            referencedColumnName = "id",
+            unique = true
+    )
     private Address address = new Address();
 
     @Column(name="imageUrl")

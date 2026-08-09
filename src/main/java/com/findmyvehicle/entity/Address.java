@@ -43,8 +43,7 @@ public class Address {
     @Column(name="country",length = 100)
     private String country;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @OneToOne(mappedBy = "address")
     private User user;
 
     @Column(name="CREATED_DATE")
