@@ -71,8 +71,12 @@ public class Address {
         }
         this.modifiedDate = new Date();
         this.modifiedBy = userName;
+
+        System.out.println("User Name = " + userName);
         if(this.createdDate == null) {
             this.createdDate = new Date();
+        }
+        if(this.createdBy == null){
             this.createdBy = userName;
         }
     }
