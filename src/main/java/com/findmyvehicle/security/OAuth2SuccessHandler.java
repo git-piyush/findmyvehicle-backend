@@ -51,7 +51,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         String jwt = jwtUtils.generateToken(email);
 
-        String redirectUrl = frontendUrl + "/auth/social-callback?token=" + jwt +"&role="+user1.getRole().name()+"&username="+user1.getName();
+        String redirectUrl = frontendUrl + "/auth/social-callback?token=" + jwt +"&role="+user1.getRole().name()+"&username="+user1.getName()+"&userId="+user1.getId();
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
