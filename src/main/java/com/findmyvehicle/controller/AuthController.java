@@ -1,16 +1,15 @@
 package com.findmyvehicle.controller;
 
-import com.findmyvehicle.dto.LoginRequest;
-import com.findmyvehicle.dto.RegisterRequest;
-import com.findmyvehicle.dto.Response;
-import com.findmyvehicle.dto.Status;
+import com.findmyvehicle.dto.*;
 import com.findmyvehicle.entity.User;
+import com.findmyvehicle.service.AuthService;
 import com.findmyvehicle.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +22,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<Response> registerUser(@RequestBody @Valid RegisterRequest registerRequest){
@@ -52,5 +54,16 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Response> loginUser(@RequestBody @Valid LoginRequest loginRequest){
         return ResponseEntity.ok(userService.loginUser(loginRequest));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/change-password")
+    public ResponseEntity<Response> changePassword(
+            @Valid @RequestBody ChangePasswordDto changePasswordDto) {
+
+        Response response =
+                authService.changePassword(changePasswordDto);
+
+        return ResponseEntity.ok(response);
     }
 }

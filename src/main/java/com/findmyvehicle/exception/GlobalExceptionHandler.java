@@ -126,4 +126,36 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<Response> handlePasswordMismatch(
+            PasswordMismatchException ex) {
+
+        Status status = new Status();
+        status.setStatus(400);
+        status.setMessage(ex.getMessage());
+
+        Response response = new Response();
+        response.setStatus(status);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<Response> handleInvalidPassword(
+            InvalidPasswordException ex) {
+
+        Status status = new Status();
+        status.setStatus(400);
+        status.setMessage(ex.getMessage());
+
+        Response response = new Response();
+        response.setStatus(status);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
 }
