@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: FindMyVehicle
+  profiles:
+    active: dev
+server:
+  post: 8080
+
+logging:
+  level:
+    root: INFO
+    com.findmyvehicle.serviceImpl.home: DEBUG
+
