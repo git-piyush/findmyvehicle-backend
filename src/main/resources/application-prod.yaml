@@ -46,4 +46,4 @@ app:
 logging:
   level:
     root: INFO
-    com.findmyvehicle.serviceImpl.home: DEBUG
+    com.findmyvehicle: DEBUG

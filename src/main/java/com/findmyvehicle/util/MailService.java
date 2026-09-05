@@ -50,6 +50,7 @@ public class MailService {
         try {
             mailSender.send(message);
         } catch (MailException e) {
+            e.printStackTrace();
             throw new RuntimeException("Unable to send email.", e);
         }
     }
