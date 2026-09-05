@@ -60,24 +60,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Response loginUser(LoginRequest loginRequest) {
+
        User user = userRepository.findByEmail(loginRequest.getEmail())
                .orElseThrow(()-> new ResourceNotFoundException("Email not Found."));
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("password does not match");
         }
-        String token = jwtUtils.generateToken(user.getEmail());
-
-        UserIdentity identity = new UserIdentity();
-        identity.setToken(token);
-        identity.setUserName(user.getName());
-        identity.setRole(user.getRole());
-        identity.setUserId(user.getId());
-        identity.setEmail(user.getEmail());
-
+        Boolean emailVarified = user.getEmailVerified();
         Status status = new Status();
-        status.setStatus(200);
-        status.setMessage("User logged in successfully.");
+        UserIdentity identity = new UserIdentity();
+        if(emailVarified){
+            String token = jwtUtils.generateToken(user.getEmail());
+            identity.setToken(token);
+            identity.setUserName(user.getName());
+            identity.setRole(user.getRole());
+            identity.setUserId(user.getId());
+            identity.setEmail(user.getEmail());
+            status.setStatus(200);
+            status.setMessage("User logged in successfully.");
+        }else{
+            status.setStatus(403);
+            status.setMessage("Email not verified. Please verify your email before logging in..");
+        }
 
         return Response.builder().userIdentity(identity)
                 .status(status).build();
