@@ -1,5 +1,8 @@
 package com.findmyvehicle.util;
 
+import com.resend.Resend;
+import com.resend.services.emails.model.SendEmailRequest;
+import com.resend.services.emails.model.SendEmailResponse;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +26,17 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${resend.resend-api-key}")
+    private String resendApiKey;
+
+    @Value("${resend.resend-from-email}")
+    private String resendFromEmail;
+
 
     /**
      * Send a simple plain-text email.
      */
-    public void sendEmail(String to, String subject, String body) {
+    public void sendEmail1(String to, String subject, String body) {                //This is a Email servive using Gmail SMTP, and in render Free tiar this not working but locally it works fine. To work in render configured the Below one which is via Resend email service
 
         String dateTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"))
                 .format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a"));
@@ -50,9 +59,32 @@ public class MailService {
         try {
             mailSender.send(message);
         } catch (MailException e) {
-            e.printStackTrace();
             throw new RuntimeException("Unable to send email.", e);
         }
+    }
+
+    public void sendEmail(String to, String subject, String body) {
+        String dateTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"))
+                .format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a"));
+        String finalBody = body
+                + "\n\n"
+                + "----------------------------------------\n"
+                + "Date & Time: " + dateTime + " IST\n"
+                + "----------------------------------------\n\n"
+                + "Regards,\n"
+                + "FindMyVehicle Team";
+        String htmlBody = finalBody
+                .replace("\n", "<br>");
+        Resend resend = new Resend(resendApiKey);
+        SendEmailRequest request = SendEmailRequest.builder()
+                .from(resendFromEmail)
+                .text(finalBody)
+                .to(to)
+                .subject(subject)
+                //.html(htmlBody)
+                .build();
+
+        SendEmailResponse response = resend.emails().send(request);
     }
 
 

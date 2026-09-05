@@ -43,6 +43,11 @@ secreteJwtString: ${JWT_SECRET}
 app:
   frontend-url: ${frontend-url}
 
+resend:
+  api-key: ${RESEND_API_KEY}
+  from-email: ${RESEND_FROM_EMAIL}
+  from-name: ${RESEND_FROM_NAME}
+
 logging:
   level:
     root: INFO

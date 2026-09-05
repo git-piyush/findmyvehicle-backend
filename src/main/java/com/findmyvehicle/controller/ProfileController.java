@@ -79,7 +79,7 @@ public class ProfileController {
                         + "Your FindMyVehicle profile has been successfully updated.\n\n"
                         + "If you made this change, no further action is required.\n\n"
                         + "If you did not make this change, please log in to your FindMyVehicle account "
-                        + "and secure your account immediately.\n\n"
+                        + "and secure your account immediately.\n"
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
