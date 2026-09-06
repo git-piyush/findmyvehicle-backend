@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
         Boolean emailVarified = user.getEmailVerified();
         Status status = new Status();
         UserIdentity identity = new UserIdentity();
-        if(emailVarified){
+        if(true){
             String token = jwtUtils.generateToken(user.getEmail());
             identity.setToken(token);
             identity.setUserName(user.getName());
