@@ -1,5 +1,7 @@
 package com.findmyvehicle.dto.home;
 
+import com.findmyvehicle.enums.State;
+
 import lombok.*;
 
 @Getter
@@ -10,7 +12,7 @@ import lombok.*;
 public class Location {
     private String city;
 
-    private String state;
+    private State state;
 
     private String displayName;
 }

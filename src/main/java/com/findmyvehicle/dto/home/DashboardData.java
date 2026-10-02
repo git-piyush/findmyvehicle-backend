@@ -1,5 +1,8 @@
 package com.findmyvehicle.dto.home;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.*;
 
 @Getter
@@ -12,8 +15,7 @@ public class DashboardData {
     @Builder.Default
     private HomeHeader header = new HomeHeader();
 
-    @Builder.Default
-    private Statistics statistics = new Statistics();
+    private List<StatisticsDto> statisticsDtos = new ArrayList<StatisticsDto>();
 
     @Builder.Default
     private RecentMissingVehicles recentMissingVehicles = new RecentMissingVehicles();

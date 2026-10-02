@@ -27,28 +27,20 @@ public class VehicleController {
     private VehicleService vehicleService;
 
     @PreAuthorize("hasAnyRole('NORMAL', 'ADMIN')")
-    @PostMapping(
-            value = "/reportMissingVehicle",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<Response> reportMissingVehicle(
-            @RequestPart("vehicle") @Valid VehicleDto vehicleDto,
+    @PostMapping(value = "/reportMissingVehicle",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Response> reportMissingVehicle(@RequestPart("vehicle") @Valid VehicleDto vehicleDto,
             @RequestPart(value = "imageFile", required = false) List<MultipartFile> imageFile) {
 
         if (vehicleService.existsByRegNumber(vehicleDto.getRegNumber())) {
             throw new DuplicateResourceException(
                     "Vehicle already exists. Missing report can be registered from the Vehicle Details page.");
         }
-
-        vehicleService.reportMissingVehicle(vehicleDto);
-
+        vehicleService.reportMissingVehicle(vehicleDto,imageFile);
         Status status = new Status();
         status.setStatus(HttpStatus.CREATED.value());
         status.setMessage("Missing report has been registered.");
-
         Response response = new Response();
         response.setStatus(status);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

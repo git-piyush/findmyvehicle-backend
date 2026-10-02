@@ -2,14 +2,15 @@ package com.findmyvehicle.dto.home;
 
 import lombok.*;
 
-import lombok.*;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BoxData {
+public class StatisticsDto {
+
+    @Builder.Default
+    private String key = "";
 
     @Builder.Default
     private Long value = 0L;
@@ -22,5 +23,6 @@ public class BoxData {
 
     @Builder.Default
     private String icon = "";
+
 }
 

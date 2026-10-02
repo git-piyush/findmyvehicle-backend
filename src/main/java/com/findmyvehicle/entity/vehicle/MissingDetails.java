@@ -56,10 +56,10 @@ public class MissingDetails {
     @Column(length = 10)
     private String pinCode;
 
-    @Lob
-    private String address;
+    @Column(columnDefinition = "TEXT")
+    private String missingAddress;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)

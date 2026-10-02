@@ -15,8 +15,8 @@ public class RecentMissingVehicles {
 
     private String viewAllUrl;
 
-    private Long total;
+    private Long totalCount;
 
-    private List<Item> items;
+    private List<VehicleDetails> items;
 
 }

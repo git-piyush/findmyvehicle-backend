@@ -1,9 +1,6 @@
 package com.findmyvehicle.dto.home;
 
-import jakarta.persistence.Lob;
 import lombok.*;
-
-import java.util.Date;
 
 @Getter
 @Setter
@@ -11,29 +8,20 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 public class Item {
-    private String id;
 
-    private String registrationNumber;
+    @Builder.Default
+    private String key = "";
 
-    private String make;
+    @Builder.Default
+    private Long value = 0L;
 
-    private String model;
+    @Builder.Default
+    private String label = "";
 
-    private String displayName;
+    @Builder.Default
+    private String description = "";
 
-    private String vehicleType;
-
-    private String status;
-
-    private String imageUrl;
-
-    private byte[] image;
-
-    private Location location;
-
-    private Date reportedAt;
-
-    private String detailsUrl;
-
-    private String reward;
+    @Builder.Default
+    private String icon = "";
 }
+

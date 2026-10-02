@@ -26,10 +26,10 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    @Value("${resend.resend-api-key}")
+    @Value("${resend.resend-api-key:}")
     private String resendApiKey;
 
-    @Value("${resend.resend-from-email}")
+    @Value("${resend.resend-from-email:}")
     private String resendFromEmail;
 
 
@@ -64,6 +64,11 @@ public class MailService {
     }
 
     public void sendEmail(String to, String subject, String body) {
+        if (resendApiKey.isBlank() || resendFromEmail.isBlank()) {
+            sendEmail1(to, subject, body);
+            return;
+        }
+
         String dateTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"))
                 .format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm a"));
         String finalBody = body

@@ -3,10 +3,27 @@ package com.findmyvehicle.util;
 import com.findmyvehicle.dto.AddressDto;
 import com.findmyvehicle.dto.UserProfile;
 import com.findmyvehicle.dto.home.DashboardData;
+import com.findmyvehicle.dto.home.Item;
+import com.findmyvehicle.dto.home.Location;
+import com.findmyvehicle.dto.home.RecentMissingVehicles;
+import com.findmyvehicle.dto.home.Reward;
+import com.findmyvehicle.dto.home.StatisticsDto;
+import com.findmyvehicle.dto.home.VehicleDetails;
 import com.findmyvehicle.entity.Address;
 import com.findmyvehicle.entity.User;
 import com.findmyvehicle.entity.home.HomeDashData;
 import com.findmyvehicle.repository.UserRepository;
+import com.findmyvehicle.service.vehicle.VehicleService;
+import com.findmyvehicle.entity.home.Statistics;
+import com.findmyvehicle.entity.vehicle.MissingDetails;
+import com.findmyvehicle.entity.vehicle.Vehicle;
+import com.findmyvehicle.entity.vehicle.VehicleImage;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,42 +33,125 @@ public class MapperService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private VehicleService vehicleService;
+
     public DashboardData homeDashDataToDashboardDate(HomeDashData homeDashData){
         DashboardData dashboardData = new DashboardData();
 
         //header
+        dashboardData.getHeader().setEyebrow(homeDashData.getEyebrow());
         dashboardData.getHeader().setTitle(homeDashData.getTitle());
         dashboardData.getHeader().setHighlightedWord(homeDashData.getHighlightedWord());
         dashboardData.getHeader().setDescription(homeDashData.getDescription());
         dashboardData.getHeader().setSearchPlaceholder(homeDashData.getSearchPlaceholder());
-
+        dashboardData.getHeader().setReportMissingUrl(homeDashData.getReportMissingUrl());
+        dashboardData.getHeader().setSearchVehiclesUrl(homeDashData.getSearchVehiclesUrl());
 
         //Statistics
-        //box1
-        dashboardData.getStatistics().getBox1().setValue(homeDashData.getBox1Value());
-        dashboardData.getStatistics().getBox1().setLabel(homeDashData.getBox1Label());
-        dashboardData.getStatistics().getBox1().setDescription(homeDashData.getBox1Description());
-        dashboardData.getStatistics().getBox1().setIcon(homeDashData.getBox1Icon());
+        List<Statistics> statisticsList = homeDashData.getStatistics();
+        List<StatisticsDto> statisticsDtoList = statisticsListToStatisticsDtoList(statisticsList);
+        dashboardData.setStatisticsDtos(statisticsDtoList);
 
-        //box2
-        dashboardData.getStatistics().getBox2().setValue(homeDashData.getBox2Value());
-        dashboardData.getStatistics().getBox2().setLabel(homeDashData.getBox2Label());
-        dashboardData.getStatistics().getBox2().setDescription(homeDashData.getBox2Description());
-        dashboardData.getStatistics().getBox2().setIcon(homeDashData.getBox2Icon());
+        //Get recent 5 missing vehicles reported
+        List<Vehicle> fourMissingVehicles = vehicleService.getRecentMissingVehicles(4);
 
-        //box3
-        dashboardData.getStatistics().getBox3().setValue(homeDashData.getBox3Value());
-        dashboardData.getStatistics().getBox3().setLabel(homeDashData.getBox3Label());
-        dashboardData.getStatistics().getBox3().setDescription(homeDashData.getBox3Description());
-        dashboardData.getStatistics().getBox3().setIcon(homeDashData.getBox3Icon());
+        List<VehicleDetails> vehicleDetailsList = new ArrayList<>();
+        RecentMissingVehicles recentMissingVehicles = new RecentMissingVehicles();
 
-        //box4
-        dashboardData.getStatistics().getBox4().setValue(homeDashData.getBox4Value());
-        dashboardData.getStatistics().getBox4().setLabel(homeDashData.getBox4Label());
-        dashboardData.getStatistics().getBox4().setDescription(homeDashData.getBox4Description());
-        dashboardData.getStatistics().getBox4().setIcon(homeDashData.getBox4Icon());
+        if(fourMissingVehicles!=null && !fourMissingVehicles.isEmpty()){
+            vehicleDetailsList = vehicleListToVehicleDetailsList(fourMissingVehicles);
 
+            recentMissingVehicles.setTitle("Recently Missing Vehicles.");
+            recentMissingVehicles.setTotalCount(Long.valueOf(fourMissingVehicles.size()));
+            recentMissingVehicles.setViewAllUrl("/search");
+            recentMissingVehicles.setItems(vehicleDetailsList);
+            dashboardData.setRecentMissingVehicles(recentMissingVehicles);
+        }
         return dashboardData;
+    }
+
+    private List<VehicleDetails> vehicleListToVehicleDetailsList(List<Vehicle> fourMissingVehicles) {
+        if(fourMissingVehicles==null || fourMissingVehicles.isEmpty()){
+            return List.of();
+        }else{
+            List<VehicleDetails> vehicleDetailsList = new ArrayList<>();
+
+            for(Vehicle vehicle : fourMissingVehicles){
+                VehicleDetails vehicleDetails = new VehicleDetails();
+                vehicleDetails.setId(vehicle.getId() != null ? vehicle.getId().toString() : null);
+                vehicleDetails.setRegistrationNumber(vehicle.getRegNumber());
+                vehicleDetails.setBrand(vehicle.getVehicleCompany());
+                vehicleDetails.setModel(vehicle.getVehicleModel());
+                vehicleDetails.setVehicleType(vehicle.getType());
+                vehicleDetails.setDisplayName(vehicle.getVehicleModel());
+                vehicleDetails.setStatus(vehicle.getVehicleStatus());
+                vehicleDetails.setDetailUrl("/search?q=" + vehicle.getRegNumber());
+                
+                //imageUrl is set to null by default, can be set later if needed
+                //image
+                List<VehicleImage> images = vehicle.getImages();
+
+                if(images!=null && !images.isEmpty()){
+                    List<String> imageUrls = new ArrayList<>();
+                    for(VehicleImage image : images){
+                        imageUrls.add(image.getImageUrl());
+                    }
+                    vehicleDetails.setImageUrls(imageUrls);
+                }
+
+                List<MissingDetails> addresses = vehicle.getMissingDetails();
+                if(addresses!=null && !addresses.isEmpty()){
+                    MissingDetails missingDetails = addresses.stream().max(Comparator.comparing(MissingDetails::getId)).orElse(null);
+                    if (missingDetails != null) {
+                        String city = missingDetails.getCity();
+                        String state = missingDetails.getState() != null ? missingDetails.getState().name() : null;
+                        String displayName = city == null ? state : state == null ? city : city + " " + state;
+                        Location location = Location.builder()
+                                .city(city)
+                                .state(missingDetails.getState())
+                                .displayName(displayName)
+                                .build();
+                        vehicleDetails.setMissingLocation(location);
+                        vehicleDetails.setMissigngDateTime(missingDetails.getMissingDate() != null
+                                ? java.sql.Date.valueOf(missingDetails.getMissingDate()) : null);
+                        if (vehicleDetails.getStatus() == null) {
+                            vehicleDetails.setStatus(missingDetails.getVehicleStatus());
+                        }
+                        String rewardAmount = missingDetails.getReward();
+                        if (rewardAmount != null && !rewardAmount.isBlank()) {
+                            Reward reward = Reward.builder()
+                                    .amount(Double.valueOf(rewardAmount))
+                                    .currency("INR")
+                                    .displayName("")
+                                    .build();
+                            vehicleDetails.setReward(reward);
+                        }
+                    }
+                }
+
+                vehicleDetailsList.add(vehicleDetails);
+            }
+            return vehicleDetailsList;
+        }
+    }
+
+
+    public List<StatisticsDto> statisticsListToStatisticsDtoList(List<Statistics> statisticsList) {
+
+        List<StatisticsDto> statisticsDtoList = new ArrayList<StatisticsDto>();
+        if(statisticsList!=null && !statisticsList.isEmpty()){
+            for(Statistics statistics : statisticsList){
+                StatisticsDto statisticsDto = new StatisticsDto();
+                statisticsDto.setKey(statistics.getKey());
+                statisticsDto.setValue(Long.valueOf(statistics.getValue()));
+                statisticsDto.setLabel(statistics.getLabel());
+                statisticsDto.setDescription(statistics.getDescription());
+                statisticsDto.setIcon(statistics.getIcon());
+                statisticsDtoList.add(statisticsDto);
+        }
+        }
+        return statisticsDtoList;
     }
 
     public UserProfile userToUserProfile(User user) {

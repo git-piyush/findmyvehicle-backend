@@ -62,7 +62,8 @@ public class SecurityFilter {
                                 "/temp/**",
                                 "/swagger-ui.html",
                                 "/oauth2/**",
-                                "/home/**"
+                                "/home/**",
+                                "/api/home/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
