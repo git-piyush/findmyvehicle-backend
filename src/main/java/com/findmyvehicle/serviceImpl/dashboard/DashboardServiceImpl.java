@@ -6,8 +6,6 @@ import com.findmyvehicle.entity.vehicle.MissingDetails;
 import com.findmyvehicle.entity.vehicle.Vehicle;
 import com.findmyvehicle.entity.vehicle.VehicleImage;
 import com.findmyvehicle.enums.VehicleStatus;
-import com.findmyvehicle.repository.UserRepository;
-import com.findmyvehicle.repository.vehicle.MissingDetailsRepository;
 import com.findmyvehicle.repository.vehicle.VehicleRepository;
 import com.findmyvehicle.service.dashboard.DashboardService;
 import com.findmyvehicle.util.MultiFunctionUtility;
@@ -24,19 +22,13 @@ import java.util.Objects;
 public class DashboardServiceImpl implements DashboardService {
 
     private final VehicleRepository vehicleRepository;
-    private final MissingDetailsRepository missingDetailsRepository;
-    private final UserRepository userRepository;
     private final MultiFunctionUtility multiFunctionUtility;
     private final int recentMissingVehiclesLimit;
 
     public DashboardServiceImpl(VehicleRepository vehicleRepository,
-                                MissingDetailsRepository missingDetailsRepository,
-                                UserRepository userRepository,
                                 MultiFunctionUtility multiFunctionUtility,
                                 @Value("${app.dashboard.recent-missing-vehicles-limit}") int recentMissingVehiclesLimit) {
         this.vehicleRepository = vehicleRepository;
-        this.missingDetailsRepository = missingDetailsRepository;
-        this.userRepository = userRepository;
         this.multiFunctionUtility = multiFunctionUtility;
         this.recentMissingVehiclesLimit = recentMissingVehiclesLimit;
     }
@@ -45,12 +37,12 @@ public class DashboardServiceImpl implements DashboardService {
     @Transactional(readOnly = true)
     public DashboardData getDashboardData() {
         User user = multiFunctionUtility.getCurrentUser();
+        Long userId = user.getId();
         DashboardData.DashboardSummary summary = new DashboardData.DashboardSummary(
-                vehicleRepository.countVehiclesByMissingDetailsStatus(VehicleStatus.MISSING),
-                vehicleRepository.countVehiclesByMissingDetailsStatus(VehicleStatus.FOUND)
-                        + vehicleRepository.countVehiclesByMissingDetailsStatus(VehicleStatus.CLOSED),
-                userRepository.count(),
-                missingDetailsRepository.countDistinctReportedStates());
+                vehicleRepository.countByReportedBy_Id(userId),
+                vehicleRepository.countReportsByUserAndStatus(userId, VehicleStatus.FOUND),
+                vehicleRepository.countReportsByUserAndStatus(userId, VehicleStatus.MISSING),
+                vehicleRepository.countReportsByUserAndStatus(userId, VehicleStatus.CLOSED));
 
         List<DashboardData.DashboardVehicle> recentVehicles = vehicleRepository
                 .findDistinctByMissingDetails_VehicleStatusOrderByCreatedDateDesc(

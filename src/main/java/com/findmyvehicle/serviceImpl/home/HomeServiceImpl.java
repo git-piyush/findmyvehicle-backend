@@ -13,8 +13,8 @@ import com.findmyvehicle.util.MapperService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -37,124 +37,72 @@ public class HomeServiceImpl implements HomeService {
     private MapperService mapperService;
 
     @Override
+    @Transactional
     public void refreshHomeDashboardData() {
         log.info("Refreshing Home Dashboard Data...");
-
-        HomeDashData homeDashData = new HomeDashData();
         HomeDashData homeDashDataDB = homeRepository.findFirstByOrderByIdAsc();
-
-        if (homeDashDataDB != null) {
-            List<Statistics> item = new ArrayList<Statistics>();
-
-            log.debug("Existing dashboard record found with ID: {}", homeDashDataDB.getId());
-            homeDashData.setId(homeDashDataDB.getId());
-            homeDashData.setEyebrow("India's community recovery network");
-            homeDashData.setTitle("Find Your Missing Vehicle Faster.");
-            homeDashData.setHighlightedWord("Faster");
-            homeDashData.setDescription("A community platform that connects vehicle owners, citizens and authorities to help recover missing or stolen vehicles.");
-            homeDashData.setSearchPlaceholder("Search Reg. Number");
-            homeDashData.setReportMissingUrl("/report");
-            homeDashData.setSearchVehiclesUrl("/search");
-
-            Statistics item1 = new Statistics();
-            item1.setKey("vehiclesReported");
-            item1.setValue("1");
-            item1.setLabel("Vehicles Reported");
-            item1.setDescription("Across India");
-            item1.setIcon("directions_car");
-            item1.setHomeDashData(homeDashData);
-            item.add(item1);
-
-            Statistics item2 = new Statistics();
-            item2.setKey("vehiclesRecovered");
-            item2.setValue("0");
-            item2.setLabel("Vehicles Recovered");
-            item2.setDescription("Successfully Recovered");
-            item2.setIcon("verified_user");
-            item.add(item2);
-
-            Statistics item3 = new Statistics();
-            item3.setKey("registeredUsers");
-            item3.setValue("4");
-            item3.setLabel("Registered Users");
-            item3.setDescription("Trusted Community");
-            item3.setIcon("group");
-            item3.setHomeDashData(homeDashData);
-            item.add(item3);
-
-            Statistics item4 = new Statistics();
-            item4.setKey("statesCovered");
-            item4.setValue("1");
-            item4.setLabel("States Covered");
-            item4.setDescription("Pan India Coverage");
-            item4.setIcon("location_on");
-            item4.setHomeDashData(homeDashData);
-            item.add(item4);
-
-            homeDashData.setStatistics(item);
-            log.info("Dashboard data updated successfully.");
-        } else {
+        HomeDashData homeDashData = homeDashDataDB == null ? new HomeDashData() : homeDashDataDB;
+        if (homeDashDataDB == null) {
             log.warn("No existing dashboard record found. Creating a new one...");
-            List<Statistics> item = new ArrayList<Statistics>();
-
-            homeDashData.setEyebrow("India's community recovery network");
-            homeDashData.setTitle("Find Your Missing Vehicle Faster.");
-            homeDashData.setHighlightedWord("Faster");
-            homeDashData.setDescription("A community platform that connects vehicle owners, citizens and authorities to help recover missing or stolen vehicles.");
-            homeDashData.setSearchPlaceholder("Search Reg. Number");
-            homeDashData.setReportMissingUrl("/report");
-            homeDashData.setSearchVehiclesUrl("/search");
-
-            Statistics item1 = new Statistics();
-            item1.setKey("vehiclesReported");
-            item1.setValue("1");
-            item1.setLabel("Vehicles Reported");
-            item1.setDescription("Across India");
-            item1.setIcon("directions_car");
-            item1.setHomeDashData(homeDashData);
-            item.add(item1);
-
-            Statistics item2 = new Statistics();
-            item2.setKey("vehiclesRecovered");
-            item2.setValue("0");
-            item2.setLabel("Vehicles Recovered");
-            item2.setDescription("Successfully Recovered");
-            item2.setIcon("verified_user");
-            item2.setHomeDashData(homeDashData);
-            item.add(item2);
-
-            Statistics item3 = new Statistics();
-            item3.setKey("registeredUsers");
-            item3.setValue("4");
-            item3.setLabel("Registered Users");
-            item3.setDescription("Trusted Community");
-            item3.setIcon("group");
-            item3.setHomeDashData(homeDashData);
-            item.add(item3);
-
-            Statistics item4 = new Statistics();
-            item4.setKey("statesCovered");
-            item4.setValue("1");
-            item4.setLabel("States Covered");
-            item4.setDescription("Pan India Coverage");
-            item4.setIcon("location_on");
-            item4.setHomeDashData(homeDashData);
-            item.add(item4);
-
-            homeDashData.setStatistics(item);
-            log.info("New dashboard record created successfully.");
+        } else {
+            log.debug("Existing dashboard record found with ID: {}", homeDashDataDB.getId());
         }
+
+        homeDashData.setEyebrow("India's community recovery network");
+        homeDashData.setTitle("Find Your Missing Vehicle Faster.");
+        homeDashData.setHighlightedWord("Faster");
+        homeDashData.setDescription("A community platform that connects vehicle owners, citizens and authorities to help recover missing or stolen vehicles.");
+        homeDashData.setSearchPlaceholder("Search Reg. Number");
+        homeDashData.setReportMissingUrl("/report");
+        homeDashData.setSearchVehiclesUrl("/search");
+        homeDashData.getStatistics().clear();
+        homeDashData.getStatistics().addAll(createStatistics(homeDashData));
         homeRepository.save(homeDashData);
         log.info("Dashboard data updated successfully.");
     }
 
     @Override
+    @Transactional
     public DashboardData getDashboardData() {
 
         HomeDashData homeDashDataDB = homeRepository.findFirstByOrderByIdAsc();
+        if (homeDashDataDB == null) {
+            refreshHomeDashboardData();
+            homeDashDataDB = homeRepository.findFirstByOrderByIdAsc();
+        }
 
         DashboardData dashboardData = mapperService.homeDashDataToDashboardDate(homeDashDataDB);
+        dashboardData.setStatisticsDtos(
+                mapperService.statisticsListToStatisticsDtoList(createStatistics(homeDashDataDB)));
 
         return dashboardData;
+    }
+
+    private List<Statistics> createStatistics(HomeDashData homeDashData) {
+        return List.of(
+                createStatistic(homeDashData, "vehiclesReported",
+                        vehicleRepository.count(),
+                        "Vehicles Reported", "Across India", "directions_car"),
+                createStatistic(homeDashData, "vehiclesRecovered",
+                        vehicleRepository.countVehiclesByMissingDetailsStatus(VehicleStatus.FOUND),
+                        "Vehicles Recovered", "Successfully Recovered", "verified_user"),
+                createStatistic(homeDashData, "registeredUsers", userRepository.count(),
+                        "Registered Users", "Trusted Community", "group"),
+                createStatistic(homeDashData, "statesCovered",
+                        missingDetailsRepository.countDistinctReportedStates(),
+                        "States Covered", "Across India", "location_on"));
+    }
+
+    private Statistics createStatistic(
+            HomeDashData homeDashData, String key, long value,
+            String label, String description, String icon) {
+        return Statistics.builder()
+                .key(key)
+                .value(Long.toString(value))
+                .label(label)
+                .description(description)
+                .icon(icon)
+                .homeDashData(homeDashData)
+                .build();
     }
 }
