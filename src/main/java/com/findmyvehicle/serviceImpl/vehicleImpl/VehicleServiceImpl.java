@@ -215,32 +215,37 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     @Transactional
     public Vehicle reportMissingVehicle(VehicleDto vehicleDto, List<MultipartFile> imageFile) {
-
-        Vehicle vehicle = mapper.map(vehicleDto, Vehicle.class);
-
-
+        String regNumber = vehicleDto.getRegNumber().trim();
+        Vehicle vehicle = vehicleRepository.findByRegNumberIgnoreCase(regNumber)
+                .orElseGet(() -> {
+                    Vehicle newVehicle = mapper.map(vehicleDto, Vehicle.class);
+                    newVehicle.setRegNumber(regNumber);
+                    newVehicle.setReportedBy(multiFunctionUtility.getCurrentUser());
+                    newVehicle.setMissingDetails(new ArrayList<>());
+                    newVehicle.setImages(new ArrayList<>());
+                    return newVehicle;
+                });
 
         MissingDetails missingDetails =
                 mapper.map(vehicleDto.getMissingDetails(), MissingDetails.class);
-
         missingDetails.setVehicleStatus(VehicleStatus.MISSING);
         missingDetails.setVehicle(vehicle);
 
-        vehicle.setMissingDetails(List.of(missingDetails));
-        vehicle.setReportedBy(multiFunctionUtility.getCurrentUser());
+        if (vehicle.getMissingDetails() == null) {
+            vehicle.setMissingDetails(new ArrayList<>());
+        }
+        vehicle.getMissingDetails().add(missingDetails);
+        vehicle.setVehicleStatus(VehicleStatus.MISSING);
 
-
-        List<String> urls =  imageService.uploadVehicleImages(vehicle.getRegNumber(), imageFile);
-        List<VehicleImage> vehicleImages = new ArrayList<VehicleImage>();
-
-        if(urls != null && !urls.isEmpty()){
-            for(String url: urls){
-                VehicleImage vehicleImage = new VehicleImage();
-                vehicleImage.setVehicle(vehicle);
-                vehicleImage.setImageUrl(url);
-                vehicleImages.add(vehicleImage);
-            }
-            vehicle.setImages(vehicleImages);
+        List<String> urls = imageService.uploadVehicleImages(vehicle.getRegNumber(), imageFile);
+        if (vehicle.getImages() == null) {
+            vehicle.setImages(new ArrayList<>());
+        }
+        for (String url : urls) {
+            VehicleImage vehicleImage = new VehicleImage();
+            vehicleImage.setVehicle(vehicle);
+            vehicleImage.setImageUrl(url);
+            vehicle.getImages().add(vehicleImage);
         }
 
         return vehicleRepository.save(vehicle);

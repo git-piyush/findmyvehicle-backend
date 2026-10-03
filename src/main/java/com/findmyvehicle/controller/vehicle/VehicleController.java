@@ -5,7 +5,6 @@ import com.findmyvehicle.dto.Status;
 import com.findmyvehicle.dto.vehicle.VehicleDetailsDto;
 import com.findmyvehicle.dto.vehicle.VehicleDto;
 import com.findmyvehicle.enums.VehicleStatus;
-import com.findmyvehicle.exception.DuplicateResourceException;
 import com.findmyvehicle.service.vehicle.VehicleService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,10 +124,6 @@ public class VehicleController {
     public ResponseEntity<Response> reportMissingVehicle(@RequestPart("vehicle") @Valid VehicleDto vehicleDto,
             @RequestPart(value = "imageFile", required = false) List<MultipartFile> imageFile) {
 
-        if (vehicleService.existsByRegNumber(vehicleDto.getRegNumber())) {
-            throw new DuplicateResourceException(
-                    "Vehicle already exists. Missing report can be registered from the Vehicle Details page.");
-        }
         vehicleService.reportMissingVehicle(vehicleDto,imageFile);
         Status status = new Status();
         status.setStatus(HttpStatus.CREATED.value());
