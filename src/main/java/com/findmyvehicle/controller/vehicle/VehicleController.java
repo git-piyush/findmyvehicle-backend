@@ -4,6 +4,7 @@ import com.findmyvehicle.dto.Response;
 import com.findmyvehicle.dto.Status;
 import com.findmyvehicle.dto.vehicle.VehicleDetailsDto;
 import com.findmyvehicle.dto.vehicle.VehicleDto;
+import com.findmyvehicle.enums.VehicleStatus;
 import com.findmyvehicle.exception.DuplicateResourceException;
 import com.findmyvehicle.service.vehicle.VehicleService;
 import jakarta.validation.Valid;
@@ -61,6 +62,35 @@ public class VehicleController {
         response.setStatus(status);
         response.setData(vehicleService.getVehiclesReportedByCurrentUser(
                 regNumber, model, city, pinCode, page, size));
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAnyRole('NORMAL', 'ADMIN')")
+    @GetMapping("/vehicles/reported-all")
+    public ResponseEntity<Response<Page<VehicleDetailsDto>>> getAllVehiclesReported(
+            @RequestParam(required = false) String regNumber,
+            @RequestParam(required = false) String model,
+            @RequestParam(name = "missingCity", required = false) String city,
+            @RequestParam(required = false) String pinCode,
+            @RequestParam(required = false) VehicleStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            Status responseStatus = new Status();
+            responseStatus.setStatus(HttpStatus.BAD_REQUEST.value());
+            responseStatus.setMessage("Page must be non-negative and size must be between 1 and 100.");
+            Response<Page<VehicleDetailsDto>> response = new Response<>();
+            response.setStatus(responseStatus);
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        Response<Page<VehicleDetailsDto>> response = new Response<>();
+        Status responseStatus = new Status();
+        responseStatus.setStatus(HttpStatus.OK.value());
+        responseStatus.setMessage("All reported vehicles retrieved.");
+        response.setStatus(responseStatus);
+        response.setData(vehicleService.getAllVehiclesReported(
+                regNumber, model, city, pinCode, status, page, size));
         return ResponseEntity.ok(response);
     }
 

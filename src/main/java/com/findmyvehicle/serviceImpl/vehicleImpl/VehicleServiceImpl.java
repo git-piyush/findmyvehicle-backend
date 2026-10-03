@@ -63,20 +63,48 @@ public class VehicleServiceImpl implements VehicleService {
     @Transactional(readOnly = true)
     public Page<VehicleDetailsDto> getVehiclesReportedByCurrentUser(
             String regNumber, String model, String city, String pinCode, int page, int size) {
-        if (page < 0 || size < 1 || size > 100) {
-            throw new IllegalArgumentException("Page must be non-negative and size must be between 1 and 100.");
-        }
+        validatePage(page, size);
 
         Long userId = multiFunctionUtility.getCurrentUser().getId();
+        Specification<Vehicle> specification = buildVehicleSearchSpecification(
+                userId, regNumber, model, city, pinCode, null);
+
+        return vehicleRepository.findAll(specification, PageRequest.of(
+                        page, size, Sort.by(Sort.Direction.DESC, "createdDate")))
+                .map(this::toVehicleDetailsDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<VehicleDetailsDto> getAllVehiclesReported(
+            String regNumber, String model, String city, String pinCode,
+            VehicleStatus status, int page, int size) {
+        validatePage(page, size);
+        Specification<Vehicle> specification = buildVehicleSearchSpecification(
+                null, regNumber, model, city, pinCode, status);
+
+        return vehicleRepository.findAll(specification, PageRequest.of(
+                        page, size, Sort.by(Sort.Direction.DESC, "createdDate")))
+                .map(this::toVehicleDetailsDto);
+    }
+
+    private Specification<Vehicle> buildVehicleSearchSpecification(
+            Long reportedById, String regNumber, String model, String city,
+            String pinCode, VehicleStatus status) {
         String registrationFilter = normalizeSearchValue(regNumber);
         String modelFilter = normalizeSearchValue(model);
         String cityFilter = normalizeSearchValue(city);
         String pinCodeFilter = normalizeSearchValue(pinCode);
 
-        Specification<Vehicle> specification = (root, query, criteriaBuilder) -> {
+        return (root, query, criteriaBuilder) -> {
             Join<Vehicle, MissingDetails> missingDetails = root.join("missingDetails", JoinType.LEFT);
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.equal(root.get("reportedBy").get("id"), userId));
+            if (reportedById != null) {
+                predicates.add(criteriaBuilder.equal(root.get("reportedBy").get("id"), reportedById));
+            }
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(missingDetails.get("vehicleStatus"), status));
+            }
             addContainsPredicate(predicates, criteriaBuilder, root.get("regNumber"), registrationFilter);
             addContainsPredicate(predicates, criteriaBuilder, root.get("vehicleModel"), modelFilter);
             addContainsPredicate(predicates, criteriaBuilder, missingDetails.get("city"), cityFilter);
@@ -84,10 +112,6 @@ public class VehicleServiceImpl implements VehicleService {
             query.distinct(true);
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
-
-        return vehicleRepository.findAll(specification, PageRequest.of(
-                        page, size, Sort.by(Sort.Direction.DESC, "createdDate")))
-                .map(this::toVehicleDetailsDto);
     }
 
     @Override
@@ -134,6 +158,12 @@ public class VehicleServiceImpl implements VehicleService {
 
     private String normalizeSearchValue(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private void validatePage(int page, int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            throw new IllegalArgumentException("Page must be non-negative and size must be between 1 and 100.");
+        }
     }
 
     private VehicleDetailsDto toVehicleDetailsDto(Vehicle vehicle) {

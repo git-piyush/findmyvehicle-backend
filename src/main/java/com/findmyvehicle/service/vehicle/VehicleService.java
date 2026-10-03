@@ -3,6 +3,7 @@ package com.findmyvehicle.service.vehicle;
 import com.findmyvehicle.dto.vehicle.VehicleDto;
 import com.findmyvehicle.dto.vehicle.VehicleDetailsDto;
 import com.findmyvehicle.entity.vehicle.Vehicle;
+import com.findmyvehicle.enums.VehicleStatus;
 
 import java.util.List;
 
@@ -19,6 +20,10 @@ public interface VehicleService {
 
     Page<VehicleDetailsDto> getVehiclesReportedByCurrentUser(
             String regNumber, String model, String city, String pinCode, int page, int size);
+
+    Page<VehicleDetailsDto> getAllVehiclesReported(
+            String regNumber, String model, String city, String pinCode,
+            VehicleStatus status, int page, int size);
 
     Page<VehicleDetailsDto> searchMissingVehicles(
             String regNumber, String model, String city, String pinCode, int page, int size);
