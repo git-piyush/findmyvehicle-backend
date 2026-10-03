@@ -17,6 +17,8 @@ public class UserProfile {
 
     private String phone;
 
+    private String profileImageUrl;
+
     @Builder.Default
     private AddressDto address = new AddressDto();
 }

@@ -1,10 +1,12 @@
 package com.findmyvehicle.service.vehicle;
 
 import com.findmyvehicle.dto.vehicle.VehicleDto;
+import com.findmyvehicle.dto.vehicle.VehicleDetailsDto;
 import com.findmyvehicle.entity.vehicle.Vehicle;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 public interface VehicleService {
 
     Boolean existsByRegNumber(String regNumber);
+
+    VehicleDetailsDto getVehicleDetails(String regNumber);
+
+    Page<VehicleDetailsDto> searchMissingVehicles(
+            String regNumber, String model, String city, String pinCode, int page, int size);
 
     Vehicle reportMissingVehicle(VehicleDto vehicleDto, List<MultipartFile> imageFile);
 

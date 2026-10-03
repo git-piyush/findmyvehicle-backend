@@ -10,6 +10,7 @@ import com.findmyvehicle.repository.UserRepository;
 import com.findmyvehicle.service.UserService;
 import com.findmyvehicle.util.JwtUtils;
 import com.findmyvehicle.util.MapperService;
+import com.findmyvehicle.util.ImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -33,6 +34,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final JwtUtils jwtUtils;
+
+    private final ImageService imageService;
 
     @Autowired
     private MapperService mapperService;
@@ -138,9 +141,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUserProfile(User user, MultipartFile imageFile) {
-
-        //Save Image
         user = userRepository.save(user);
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String profileImageUrl = imageService.uploadProfileImage(user.getId(), imageFile);
+            user.setProfilePic(profileImageUrl);
+            user = userRepository.save(user);
+        }
 
         return user;
     }

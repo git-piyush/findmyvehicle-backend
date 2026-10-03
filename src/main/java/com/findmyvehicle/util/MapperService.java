@@ -161,6 +161,7 @@ public class MapperService {
         userProfile.setName(user.getName());
         userProfile.setEmail(user.getEmail());
         userProfile.setPhone(user.getPhoneNumber());
+        userProfile.setProfileImageUrl(user.getProfilePic());
 
         if(address!=null){
             userProfile.getAddress().setId(address.getId());

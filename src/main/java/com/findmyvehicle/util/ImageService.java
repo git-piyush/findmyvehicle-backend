@@ -61,4 +61,30 @@ public class ImageService {
 
         return imageUrls;
     }
+
+    public String uploadProfileImage(Long userId, MultipartFile imageFile) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID is required to upload a profile image");
+        }
+        if (imageFile == null || imageFile.isEmpty()) {
+            return null;
+        }
+
+        Map<String, Object> uploadOptions = new HashMap<>();
+        uploadOptions.put("folder", imageFolder + "/" + userId);
+        uploadOptions.put("public_id", userId + "-profile");
+        uploadOptions.put("overwrite", true);
+        uploadOptions.put("resource_type", "image");
+
+        try {
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), uploadOptions);
+            Object secureUrl = uploadResult.get("secure_url");
+            if (!(secureUrl instanceof String)) {
+                throw new IllegalStateException("Cloudinary did not return a secure profile image URL");
+            }
+            return (String) secureUrl;
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to upload profile image to Cloudinary", exception);
+        }
+    }
 }
