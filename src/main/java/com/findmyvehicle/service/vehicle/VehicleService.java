@@ -17,6 +17,9 @@ public interface VehicleService {
 
     VehicleDetailsDto getVehicleDetails(String regNumber);
 
+    Page<VehicleDetailsDto> getVehiclesReportedByCurrentUser(
+            String regNumber, String model, String city, String pinCode, int page, int size);
+
     Page<VehicleDetailsDto> searchMissingVehicles(
             String regNumber, String model, String city, String pinCode, int page, int size);
 

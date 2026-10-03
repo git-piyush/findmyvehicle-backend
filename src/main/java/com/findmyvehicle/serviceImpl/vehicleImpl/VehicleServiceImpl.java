@@ -15,6 +15,7 @@ import com.findmyvehicle.util.MultiFunctionUtility;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 
 @Service
@@ -55,6 +57,37 @@ public class VehicleServiceImpl implements VehicleService {
                         "Vehicle not found for registration number: " + regNumber));
 
         return toVehicleDetailsDto(vehicle);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<VehicleDetailsDto> getVehiclesReportedByCurrentUser(
+            String regNumber, String model, String city, String pinCode, int page, int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            throw new IllegalArgumentException("Page must be non-negative and size must be between 1 and 100.");
+        }
+
+        Long userId = multiFunctionUtility.getCurrentUser().getId();
+        String registrationFilter = normalizeSearchValue(regNumber);
+        String modelFilter = normalizeSearchValue(model);
+        String cityFilter = normalizeSearchValue(city);
+        String pinCodeFilter = normalizeSearchValue(pinCode);
+
+        Specification<Vehicle> specification = (root, query, criteriaBuilder) -> {
+            Join<Vehicle, MissingDetails> missingDetails = root.join("missingDetails", JoinType.LEFT);
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.equal(root.get("reportedBy").get("id"), userId));
+            addContainsPredicate(predicates, criteriaBuilder, root.get("regNumber"), registrationFilter);
+            addContainsPredicate(predicates, criteriaBuilder, root.get("vehicleModel"), modelFilter);
+            addContainsPredicate(predicates, criteriaBuilder, missingDetails.get("city"), cityFilter);
+            addContainsPredicate(predicates, criteriaBuilder, missingDetails.get("pinCode"), pinCodeFilter);
+            query.distinct(true);
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return vehicleRepository.findAll(specification, PageRequest.of(
+                        page, size, Sort.by(Sort.Direction.DESC, "createdDate")))
+                .map(this::toVehicleDetailsDto);
     }
 
     @Override

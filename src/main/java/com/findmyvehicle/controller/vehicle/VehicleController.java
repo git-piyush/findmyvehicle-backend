@@ -36,6 +36,34 @@ public class VehicleController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAnyRole('NORMAL', 'ADMIN')")
+    @GetMapping("/vehicles/reported-by-me")
+    public ResponseEntity<Response<Page<VehicleDetailsDto>>> getVehiclesReportedByCurrentUser(
+            @RequestParam(required = false) String regNumber,
+            @RequestParam(required = false) String model,
+            @RequestParam(name = "missingCity", required = false) String city,
+            @RequestParam(required = false) String pinCode,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            Status status = new Status();
+            status.setStatus(HttpStatus.BAD_REQUEST.value());
+            status.setMessage("Page must be non-negative and size must be between 1 and 100.");
+            Response<Page<VehicleDetailsDto>> response = new Response<>();
+            response.setStatus(status);
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        Response<Page<VehicleDetailsDto>> response = new Response<>();
+        Status status = new Status();
+        status.setStatus(HttpStatus.OK.value());
+        status.setMessage("Your reported vehicles retrieved.");
+        response.setStatus(status);
+        response.setData(vehicleService.getVehiclesReportedByCurrentUser(
+                regNumber, model, city, pinCode, page, size));
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/vehicles/search")
     public ResponseEntity<Response<Page<VehicleDetailsDto>>> searchMissingVehicles(
             @RequestParam(required = false) String regNumber,

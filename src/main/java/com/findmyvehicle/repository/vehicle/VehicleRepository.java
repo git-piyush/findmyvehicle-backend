@@ -2,6 +2,7 @@ package com.findmyvehicle.repository.vehicle;
 
 import com.findmyvehicle.entity.vehicle.Vehicle;
 import com.findmyvehicle.enums.VehicleStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
