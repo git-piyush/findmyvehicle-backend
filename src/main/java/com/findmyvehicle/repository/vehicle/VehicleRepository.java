@@ -28,6 +28,10 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long>, JpaSpec
         long countByReportedBy_Id(Long userId);
 
         @Query("SELECT COUNT(DISTINCT v.id) FROM Vehicle v JOIN v.missingDetails md "
+                + "WHERE md.vehicleStatus = :status")
+        long countVehiclesByMissingDetailsStatus(@Param("status") VehicleStatus status);
+
+        @Query("SELECT COUNT(DISTINCT v.id) FROM Vehicle v JOIN v.missingDetails md "
             + "WHERE v.reportedBy.id = :userId AND md.vehicleStatus = :status")
         long countReportsByUserAndStatus(@Param("userId") Long userId,
                          @Param("status") VehicleStatus status);

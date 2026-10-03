@@ -6,15 +6,16 @@ import com.findmyvehicle.entity.vehicle.MissingDetails;
 import com.findmyvehicle.entity.vehicle.Vehicle;
 import com.findmyvehicle.entity.vehicle.VehicleImage;
 import com.findmyvehicle.enums.VehicleStatus;
+import com.findmyvehicle.repository.UserRepository;
+import com.findmyvehicle.repository.vehicle.MissingDetailsRepository;
 import com.findmyvehicle.repository.vehicle.VehicleRepository;
 import com.findmyvehicle.service.dashboard.DashboardService;
 import com.findmyvehicle.util.MultiFunctionUtility;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -23,29 +24,37 @@ import java.util.Objects;
 public class DashboardServiceImpl implements DashboardService {
 
     private final VehicleRepository vehicleRepository;
+    private final MissingDetailsRepository missingDetailsRepository;
+    private final UserRepository userRepository;
     private final MultiFunctionUtility multiFunctionUtility;
+    private final int recentMissingVehiclesLimit;
 
     public DashboardServiceImpl(VehicleRepository vehicleRepository,
-                                MultiFunctionUtility multiFunctionUtility) {
+                                MissingDetailsRepository missingDetailsRepository,
+                                UserRepository userRepository,
+                                MultiFunctionUtility multiFunctionUtility,
+                                @Value("${app.dashboard.recent-missing-vehicles-limit}") int recentMissingVehiclesLimit) {
         this.vehicleRepository = vehicleRepository;
+        this.missingDetailsRepository = missingDetailsRepository;
+        this.userRepository = userRepository;
         this.multiFunctionUtility = multiFunctionUtility;
+        this.recentMissingVehiclesLimit = recentMissingVehiclesLimit;
     }
 
     @Override
     @Transactional(readOnly = true)
     public DashboardData getDashboardData() {
         User user = multiFunctionUtility.getCurrentUser();
-        Long userId = user.getId();
-
         DashboardData.DashboardSummary summary = new DashboardData.DashboardSummary(
-                vehicleRepository.countByReportedBy_Id(userId),
-                vehicleRepository.countReportsByUserAndStatus(userId, VehicleStatus.FOUND),
-                vehicleRepository.countReportsByUserAndStatus(userId, VehicleStatus.MISSING),
-                vehicleRepository.countReportsByUserAndStatus(userId, VehicleStatus.CLOSED));
+                vehicleRepository.countVehiclesByMissingDetailsStatus(VehicleStatus.MISSING),
+                vehicleRepository.countVehiclesByMissingDetailsStatus(VehicleStatus.FOUND)
+                        + vehicleRepository.countVehiclesByMissingDetailsStatus(VehicleStatus.CLOSED),
+                userRepository.count(),
+                missingDetailsRepository.countDistinctReportedStates());
 
         List<DashboardData.DashboardVehicle> recentVehicles = vehicleRepository
                 .findDistinctByMissingDetails_VehicleStatusOrderByCreatedDateDesc(
-                        VehicleStatus.MISSING, PageRequest.of(0, 3))
+                        VehicleStatus.MISSING, PageRequest.of(0, recentMissingVehiclesLimit))
                 .stream()
                 .map(this::toDashboardVehicle)
                 .toList();
@@ -54,7 +63,7 @@ public class DashboardServiceImpl implements DashboardService {
                 new DashboardData.DashboardUser(
                         user.getId(), user.getName(), user.getEmail(), user.getProfilePic()),
                 summary,
-                new DashboardData.DashboardActivity(0, 0),
+                new DashboardData.DashboardActivity(null, null),
                 recentVehicles);
     }
 
@@ -67,14 +76,12 @@ public class DashboardServiceImpl implements DashboardService {
         String reportedAt = null;
         if (latestDetails != null) {
             String city = latestDetails.getCity();
-            String state = latestDetails.getState() == null ? null : latestDetails.getState().name();
+            String state = latestDetails.getState() == null
+                    ? null : latestDetails.getState().getDisplayName();
             location = city == null ? state : state == null ? city : city + ", " + state;
-            if (latestDetails.getMissingDate() != null) {
-                reportedAt = LocalDateTime.of(
-                        latestDetails.getMissingDate(),
-                        Objects.requireNonNullElse(latestDetails.getMissingTime(), LocalTime.MIDNIGHT))
-                        .toString();
-            }
+        }
+        if (vehicle.getCreatedDate() != null) {
+            reportedAt = vehicle.getCreatedDate().toInstant().toString();
         }
 
         String image = vehicle.getImages().stream()

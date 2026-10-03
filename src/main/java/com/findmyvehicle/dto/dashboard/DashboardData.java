@@ -10,9 +10,13 @@ public record DashboardData(
 
     public record DashboardUser(Long id, String name, String email, String profileImageUrl) {}
 
-    public record DashboardSummary(long totalReports, long recovered, long inProgress, long closed) {}
+    public record DashboardSummary(
+            long totalMissingVehicles,
+            long foundOrClosedReports,
+            long totalRegisteredUsers,
+            long availableStates) {}
 
-    public record DashboardActivity(int unreadNotifications, int unreadMessages) {}
+    public record DashboardActivity(Integer unreadNotifications, Integer unreadMessages) {}
 
     public record DashboardVehicle(
             Long id,
